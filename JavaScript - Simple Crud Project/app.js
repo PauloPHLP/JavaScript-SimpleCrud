@@ -1,405 +1,393 @@
 const StorageController = (() => {
-  return {
-    storeUser: (user) => {
-      let users;
+    return {
+        storeUser: (user) => {
+            let users;
 
-      if (localStorage.getItem('users') === null){
-        users = [];
+            if (localStorage.getItem('users') === null) {
+                users = [];
+                users.push(user);
+                localStorage.setItem('users', JSON.stringify(users));
+            } else {
+                users = JSON.parse(localStorage.getItem('users'));
+                users.push(user);
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+        },
 
-        users.push(user);
+        getUsersFromStorage: () => {
+            let users;
+            
+            if (localStorage.getItem('users') === null) {
+              users = [];
+            } else {
+              users = JSON.parse(localStorage.getItem('users'));
+            }
 
-        localStorage.setItem('users', JSON.stringify(users));
-      } else {
-        users = JSON.parse(localStorage.getItem('users'));
+            return users;
+          },
 
-        users.push(user);
-
-        localStorage.setItem('users', JSON.stringify(users));
-      }
-    },
-
-    getUsersFromStorage: () => {
-      let users;
-    
-      if (localStorage.getItem('users') === null) {
-        users = [];
-      } else {
-        users = JSON.parse(localStorage.getItem('users'));
-      }
-
-      return users;
-    },
-
-    updateUserStorage: (updatedUser) => {
-      let users = JSON.parse(localStorage.getItem('users'));
-
-      users.forEach((user, index) => {
-        if(updatedUser.id === user.id){
-          users.splice(index, 1, updatedUser);
-        }
-      });
-
-      localStorage.setItem('users', JSON.stringify(users));
-    },
-
-    deleteUserFromStorage: (id) => {
-      let users = JSON.parse(localStorage.getItem('users'));
+          updateUserStorage: (updatedUser) => {
+            let users = JSON.parse(localStorage.getItem('users'));
       
-      users.forEach((user, index) => {
-        if(id === user.id){
-          users.splice(index, 1);
-        }
-      });
+            users.forEach((user, index) => {
+              if (updatedUser.id === user.id){
+                users.splice(index, 1, updatedUser);
+              }
+            });
 
-      localStorage.setItem('users', JSON.stringify(users));
-    },
+            localStorage.setItem('users', JSON.stringify(users));
+          },
 
-    clearUsersFromStorage: () => {
-      localStorage.removeItem('users');
+          deleteUserFromStorage: (userToDelete) => {
+            let users = JSON.parse(localStorage.getItem('users'));
+            
+            users.forEach((user, index) => {
+              if(userToDelete.id === user.id){
+                users.splice(index, 1);
+              }
+            });
+
+            localStorage.setItem('users', JSON.stringify(users));
+          },
+          
+          clearUsersFromStorage: () => {
+            localStorage.removeItem('users');
+          }
     }
-  }
 })();
 
 const UserController = (() => {
-  const User = function(id, name, nickname, cpf, email){
-    this.id = id;
-    this.name = name;
-    this.nickname = nickname;
-    this.cpf = cpf;
-    this.email = email;
-  }
-
-  const data = {
-    users: StorageController.getUsersFromStorage(),
-    currentUser: null
-  }
-
-  return {
-    getUsers: () => {
-      return data.users;
-    },
-
-    addUser: (name, nickname, cpf, email) => {
-      let ID;
-
-      if (data.users.length > 0) {
-        ID = data.users[data.users.length - 1].id + 1;
-      } else {
-        ID = 0;
-      }
-
-      newUser = new User(ID, name, nickname, cpf, email);
-
-      data.users.push(newUser);
-
-      return newUser;
-    },
-
-    getUserById: (id) => {
-      let found = null;
-
-      data.users.forEach((user) => {
-        if(user.id === id){
-          found = user;
-        }
-      });
-
-      return found;
-    },
-
-    updateUser: (name, nickname, cpf, email) => {
-      let found = null;
-
-      data.users.forEach((user) => {
-        if(user.id === data.currentUser.id){
-          user.name = name;
-          user.nickname = nickname;
-          user.cpf = cpf;
-          user.email = email;
-          found = user;
-        }
-      });
-
-      return found;
-    },
-
-    deleteUser: (id) => {
-      const ids = data.users.map((user) => {
-        return user.id;
-      });
-
-      const index = ids.indexOf(id);
-
-      data.users.splice(index, 1);
-    },
-
-    clearAllUsers: () => {
-      data.users = [];
-    },
-
-    setCurrentUser: (user) => {
-      data.currentUser = user;
-    },
-
-    getCurrentUser: () => {
-      return data.currentUser;
-    },
-    
-    logData: () => {
-      return data;
+    const User = function(id, name, nickname, cpf, email) {
+        this.id = id;
+        this.name = name;
+        this.nickname = nickname;
+        this.cpf = cpf;
+        this.email = email;
     }
-  }
-})();
+
+    const userData = {
+        users: StorageController.getUsersFromStorage(),
+        currentUser: null
+    }
+
+    return {
+        addUser: (user) => {
+            let id;
+
+            if (userData.users.length > 0) {
+                id = userData.users[userData.users.length - 1].id + 1;
+            } else {
+                id = 0;
+            }
+
+            newUser = new User(id, user.name, user.nickname, user.cpf, user.email);
+
+            userData.users.push(newUser);
+
+            return newUser;
+        },
+
+        updateUser: (userToEdit) => {
+            let found = null;
+
+            userData.users.forEach((user) => {
+                if (user.id === userData.currentUser.id) {
+                    user.name = userToEdit.name;
+                    user.nickname = userToEdit.nickname;
+                    user.cpf = userToEdit.cpf;
+                    user.email = userToEdit.email;
+
+                    found = user;
+                }
+            });
+
+            return found;
+        },
+
+        del: (userToDelete) => {
+            const ids = userData.users.map((user) => {
+                return user.id;
+            })
+
+            const index = ids.indexOf(userToDelete);
+
+            userData.users.splice(index, 1);
+        },
+
+        clear: () => {
+            userData.user = [];
+        },
+
+        setCurrentUser: (user) => {
+            userData.currentUser = user;
+        },
+
+        getCurrentUser: () => {
+            return userData.currentUser;
+        },
+
+        getUsers: () => {
+            return userData.users;
+        },
+
+        getUserById: (id) => {
+            let found = null;
+
+            userData.users.forEach((user) => {
+                if (user.id === id) {
+                    found = user;
+                }
+            });
+
+            return found;
+        }
+    }
+})()
 
 const UiController = (() => {
-  const UiSelectors = {
-    itemList: '#item-list',
-    listItems: '#item-list li',
-    addBtn: '.add-btn',
-    updateBtn: '.update-btn',
-    deleteBtn: '.delete-btn',
-    backBtn: '.back-btn',
-    clearBtn: '.clear-btn',
-    itemNameInput: '#item-name',
-    itemNicknameInput: '#item-nickname',
-    itemCpfInput: '#item-cpf',
-    itemEmailInput: '#item-email',
-    totalCalories: '.total-calories'
-  }
-  
-  return {
-    populateUserList: (users) => {
-      let html = '';
+    const UiSelectors = {
+        clear: '.clear-btn',
+        name: '#person-name',
+        nickname: '#person-nickname',
+        cpf: '#person-cpf',
+        email: '#person-email',
+        add: '.add-btn',
+        update: '.update-btn',
+        delete: '.delete-btn',
+        back: '.back-btn',
+        persons: '#persons-list'
+    };
 
-      users.forEach((user) => {
-        html += `
-          <li class="collection-item" id="item-${user.id}">
-          <strong>Name: </strong><em>${user.name}</em>
-          <br>
-          <strong>Nickname: </strong><em>${user.nickname}</em>
-          <br>
-          <strong>CPF: </strong><em>${user.cpf}</em>
-          <br>
-          <strong>E-mail: </strong><em>${user.email}</em>
-          <br>
-          <a href="#" class="secondary-content">
-            <i class="edit-item fa fa-pencil"></i>
-          </a>
-          </li>
-        `;
-      });
+    return {
+        getUiSelectors: () => {
+            return UiSelectors;
+        },
 
-      document.querySelector(UiSelectors.itemList).innerHTML = html;
-    },
+        getUserInput: () => {
+            return {
+                name: document.querySelector(UiSelectors.name).value,
+                nickname: document.querySelector(UiSelectors.nickname).value,
+                cpf: document.querySelector(UiSelectors.cpf).value,
+                email: document.querySelector(UiSelectors.email).value
+            }
+        },
 
-    getUserInput: () => {
-      return {
-        name: document.querySelector(UiSelectors.itemNameInput).value,
-        nickname: document.querySelector(UiSelectors.itemNicknameInput).value,
-        cpf: document.querySelector(UiSelectors.itemCpfInput).value,
-        email: document.querySelector(UiSelectors.itemEmailInput).value
-      }
-    },
+        cleanInput: () => {
+            document.querySelector(UiSelectors.name).value = '',
+            document.querySelector(UiSelectors.nickname).value = '',
+            document.querySelector(UiSelectors.cpf).value = '',
+            document.querySelector(UiSelectors.email).value = ''
+        },
 
-    addListUser: (user) => {
-      document.querySelector(UiSelectors.itemList).style.display = 'block';
-      const li = document.createElement('li');
-      li.className = 'collection-item';
-      li.id = `item-${user.id}`;
-      li.innerHTML = `
-      <td>
-      </td>
-      <td>${user.name}</td>
-      <td>${user.nickname}</td>
-      <td>${user.cpf}</td>
-      <td>${user.email}</td>
-      <td>
-        <a href="#editPersonModal" class="edit" data-toggle="modal"><i class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
-        <a href="#deletePersonModal" class="delete" data-toggle="modal"><i class="material-icons" data-toggle="tooltip" title="Delete">&#xE872;</i></a>
-      </td>`; 
+        populateList: (userList) => {
+            let html = '';
 
-      document.querySelector(UiSelectors.itemList).insertAdjacentElement('beforeend', li);
+            userList.forEach((user) => {
+                html += 
+                    `<li class="collection-item" id="person-${user.id}">
+                        <strong>Name: </strong><em>${user.name}</em>
+                        <br>
+                        <strong>Nickname: </strong><em>${user.nickname}</em>
+                        <br>
+                        <strong>CPF: </strong><em>${user.cpf}</em>
+                        <br>
+                        <strong>E-mail: </strong><em>${user.email}</em>
+                        <a href="#" class="secondary-content">
+                        <i class="edit-item fa fa-pencil"></i>
+                        </a>
+                    </li>
+                    `;
+            });
 
-      location.reload();
-    },
+            document.querySelector(UiSelectors.persons).innerHTML = html;
+        },
 
-    updateListUser: (user) => {
-      let listUsers = document.querySelectorAll(UiSelectors.listItems);
+        addListUser: (user) => {
+            document.querySelector(UiSelectors.persons).style.display = 'block';
+            const li = document.createElement('li');
+            li.className = 'collection-item';
+            li.id = `person-${user.id}`;
+            li.innerHTML = 
+                          `<li class="collection-item" id="person-${user.id}">
+                                <strong>Name: </strong><em>${user.name}</em>
+                                <br>
+                                <strong>Nickname: </strong><em>${user.nickname}</em>
+                                <br>
+                                <strong>CPF: </strong><em>${user.cpf}</em>
+                                <br>
+                                <strong>E-mail: </strong><em>${user.email}</em>
+                                <a href="#" class="secondary-content">
+                                <i class="edit-item fa fa-pencil"></i>
+                                </a>
+                            </li>
+                            `; 
 
-      listUsers = Array.from(listUsers);
+            document.querySelector(UiSelectors.persons).insertAdjacentElement('beforeend', li);
+        },
 
-      listUsers.forEach((listUser) => {
-        const userID = listUser.getAttribute('id');
+        updateListUser: (userToEdit) => {
+            let listUsers = document.querySelectorAll(UiSelectors.persons);
 
-        if (id === `item-${user.id}`) {
-          document.querySelector(`#${id}`).innerHTML = 
-          `<strong>Name:</strong><em> ${user.name}</em>
-          <br>
-          <strong>Nickname:</strong><em> ${user.nickname}</em>
-          <br>
-          <strong>CPF:</strong><em> ${user.cpf}</em>
-          <br>
-          <strong>E-mail:</strong><em> ${user.email}</em>
-          `;
+            listUsers = Array.from(listUsers);
+            
+            listUsers.forEach((user) => {
+                const userId = user.getAttribute('id');
+
+                if (userId === `person-${userToEdit.id}`) {
+                    document.querySelector(`#${userId}`).innerHTML = 
+                                `<strong>Name:</strong><em> ${userToEdit.name}</em>
+                                <br>
+                                <strong>Nickname:</strong><em> ${userToEdit.nickname}</em>
+                                <br>
+                                <strong>CPF:</strong><em> ${userToEdit.cpf}</em>
+                                <br>
+                                <strong>E-mail:</strong><em> ${userToEdit.email}</em>
+                                `;
+                }
+            });
+        },
+
+        del: (userToDelete) => {
+            const userId = `#person-${userToDelete.id}`;
+            const user = document.querySelector(userId);
+            user.remove();
+        },
+
+        removeUsers: () => {
+            let listUsers = document.querySelectorAll(UiSelectors.persons);
+
+            listUsers = Array.from(listUsers);
+
+            listUsers.forEach((user) => {
+                user.remove();
+            });
+
+            location.reload();
+        },
+
+        addUserToForm: (userToEdit) => {
+            document.querySelector(UiSelectors.name).value = userToEdit.name;
+            document.querySelector(UiSelectors.nickname).value = userToEdit.nickname;
+            document.querySelector(UiSelectors.cpf).value = userToEdit.cpf;
+            document.querySelector(UiSelectors.email).value = userToEdit.email;
+        },
+
+        showEditState: () => {
+            document.querySelector(UiSelectors.add).style.display = 'none';
+            document.querySelector(UiSelectors.update).style.display = 'inline';
+            document.querySelector(UiSelectors.delete).style.display = 'inline';
+            document.querySelector(UiSelectors.back).style.display = 'inline';
+        },
+
+        clearEditState: () => {
+            UiController.cleanInput();
+            document.querySelector(UiSelectors.add).style.display = 'inline';
+            document.querySelector(UiSelectors.update).style.display = 'none';
+            document.querySelector(UiSelectors.delete).style.display = 'none';
+            document.querySelector(UiSelectors.back).style.display = 'none';
+        },
+
+        hideList: () => {
+            document.querySelector(UiSelectors.persons).style.display = 'none';
         }
-      });
-    },
-
-    deleteListUser: (id) => {
-      const userID = `#item-${id}`;
-      const user = document.querySelector(userID);
-      user.remove();
-    },
-
-    clearInput: () => {
-      document.querySelector(UiSelectors.itemNameInput).value = '';
-      document.querySelector(UiSelectors.itemNicknameInput).value = '';
-      document.querySelector(UiSelectors.itemCpfInput).value = '';
-      document.querySelector(UiSelectors.itemEmailInput).value = '';
-    },
-
-    addUserToForm: () => {
-      document.querySelector(UiSelectors.itemNameInput).value = UserController.getCurrentUser().name;
-      document.querySelector(UiSelectors.itemNicknameInput).value = UserController.getCurrentUser().nickname;
-      document.querySelector(UiSelectors.itemCpfInput).value = UserController.getCurrentUser().cpf;
-      document.querySelector(UiSelectors.itemEmailInput).value = UserController.getCurrentUser().email;
-      UiController.showEditState();
-    },
-
-    removeUsers: () => {
-      let listUsers = document.querySelectorAll(UiSelectors.listItems);
-
-      listUsers = Array.from(listUsers);
-
-      listUsers.forEach((user) => {
-        user.remove();
-      });
-    },
-
-    hideList: () => {
-      document.querySelector(UiSelectors.itemList).style.display = 'none';
-    },
-    
-    clearEditState: () => {
-      UiController.clearInput();
-      document.querySelector(UiSelectors.updateBtn).style.display = 'none';
-      document.querySelector(UiSelectors.deleteBtn).style.display = 'none';
-      document.querySelector(UiSelectors.backBtn).style.display = 'none';
-      document.querySelector(UiSelectors.addBtn).style.display = 'inline';
-    },
-
-    showEditState: () => {
-      document.querySelector(UiSelectors.updateBtn).style.display = 'inline';
-      document.querySelector(UiSelectors.deleteBtn).style.display = 'inline';
-      document.querySelector(UiSelectors.backBtn).style.display = 'inline';
-      document.querySelector(UiSelectors.addBtn).style.display = 'none';
-    },
-
-    getSelectors: () => {
-      return UiSelectors;
     }
-  }
-})();
+})()
 
-const AppController = ((UserController, StorageController, UiController) => {
-  const loadEventListeners = () => {
+const AppController = ((UserController, UiController, StorageController) => {
+    const loadEventListeners = () => {
+        UiSelectors = UiController.getUiSelectors();
+        
+        document.addEventListener('keypress', (e) => {
+            if (e.keyCode === 13 || e.which === 13) {
+                e.preventDefault();
+                return false;
+            }
+        });
 
-    const UiSelectors = UiController.getSelectors();
+        document.querySelector(UiSelectors.add).addEventListener('click', add);
+        document.querySelector(UiSelectors.persons).addEventListener('click', edit);
+        document.querySelector(UiSelectors.update).addEventListener('click', update);
+        document.querySelector(UiSelectors.delete).addEventListener('click', del);
+        document.querySelector(UiSelectors.clear).addEventListener('click', clear);
+        document.querySelector(UiSelectors.back).addEventListener('click', UiController.clearEditState);
+    }
 
-    document.querySelector(UiSelectors.addBtn).addEventListener('click', userAddSubmit);
+    const add = (e) => {
+        const input = UiController.getUserInput();
+        
+        if (input.name !== '' && input.nickname !== '' && input.cpf !== '' && input.email !== '') {
+            const newUser = UserController.addUser(input);
 
-    document.addEventListener('keypress', function(e) {
-      if (e.keyCode === 13 || e.which === 13) {
+            UiController.addListUser(newUser);
+            StorageController.storeUser(newUser);
+
+            UiController.cleanInput();
+        }
+
         e.preventDefault();
-        return false;
-      }
-    });
-
-    document.querySelector(UiSelectors.itemList).addEventListener('click', userEditClick);
-    document.querySelector(UiSelectors.updateBtn).addEventListener('click', userUpdateSubmit);
-    document.querySelector(UiSelectors.deleteBtn).addEventListener('click', userDeleteSubmit);
-    document.querySelector(UiSelectors.backBtn).addEventListener('click', UiController.clearEditState);
-    document.querySelector(UiSelectors.clearBtn).addEventListener('click', clearAllUsersClick);
-  }
-
-  const userAddSubmit = (e) => {
-    const input = UiController.getUserInput();
-
-    if (input.name !== '' && input.nickname !== '' && input.cpf !== '' && input.email !== '') {
-
-      const newUser = UserController.addUser(input.name, input.nickname, input.cpf, input.email);
-
-      UiController.addListUser(newUser);
-
-      StorageController.storeUser(newUser);
-
-      UiController.clearInput();
     }
 
-    e.preventDefault();
-  }
+    const edit = (e) => {
+        if (e.target.classList.contains('edit-item')) {
+            const personId = e.target.parentNode.parentNode.id;
+            const idList = personId.split('-');
+            const id = parseInt(idList[1]);
+            const userToEdit = UserController.getUserById(id);
 
-  const userEditClick = (e) => {
-    if (e.target.classList.contains('edit-item')) {
-      const listId = e.target.parentNode.parentNode.id;
-      const listIdArr = listId.split('-');
-      const id = parseInt(listIdArr[1]);
-      const userToEdit = UserController.getUserById(id);
+            UiController.showEditState();
+            UserController.setCurrentUser(userToEdit);
+            UiController.addUserToForm(userToEdit);
+        }
 
-      UserController.setCurrentUser(userToEdit);
-      UiController.addUserToForm();
+        e.preventDefault();
     }
 
-    e.preventDefault();
-  }
+    const update = (e) => {
+        const input = UiController.getUserInput();
+        const updatedUser = UserController.updateUser(input);
 
-  const userUpdateSubmit = (e) => {
-    const input = UiController.getUserInput();
-
-    const updatedUser = UserController.updateUser(input.name, input.nickname, input.cpf, input.email);
-
-    UiController.updateListUser(updatedUser);
-    StorageController.updateUserStorage(updatedUser);
-    UiController.clearEditState();
-
-    e.preventDefault();
-  }
-
-  const userDeleteSubmit = (e) => {
-    const currentUser = UserController.getCurrentUser();
-
-    UserController.deleteUser(clientInformation);
-    UiController.deleteListUser(currentUser.id);
-    StorageController.deleteUserFromStorage(currentUser.id);
-
-    UiController.clearEditState();
-
-    e.preventDefault();
-  }
-
-  const clearAllUsersClick = () => {
-    UserController.clearAllUsers();
-    UiController.removeUsers();
-    StorageController.clearUsersFromStorage();
-    UiController.hideList();    
-  }
-
-  return {
-    init: () => {
-      UiController.clearEditState();
-      
-      const items = UserController.getUsers();
-      
-      if(items.length === 0){
-        UiController.hideList();
-      } else {
-        UiController.populateUserList(items);
-      }
-      
-      loadEventListeners();
+        //UiController.updateListUser(updatedUser);
+        const usersList = UserController.getUsers();
+        UiController.populateList(usersList);
+        StorageController.updateUserStorage(updatedUser);
+        UiController.clearEditState();
+        
+        e.preventDefault();
     }
-  }
-  
-})(UserController, StorageController, UiController);
 
-AppController.init();
+    const del = (e) => {
+        const userToDelete = UserController.getCurrentUser();
+
+        UserController.del(userToDelete);
+        UiController.del(userToDelete);            
+        StorageController.deleteUserFromStorage(userToDelete);
+        UiController.clearEditState();
+        
+        e.preventDefault();
+    }
+
+    const clear = (e) => {
+        UserController.clear();
+        UiController.removeUsers();
+        //UiController.hideList();
+        StorageController.clearUsersFromStorage();
+    }
+
+    return {
+        initialize: () => {
+            UiController.clearEditState();
+
+            const users = UserController.getUsers();
+
+            if (users.length === 0) {
+                UiController.hideList();
+            } else {
+                UiController.populateList(users);
+            }
+
+            loadEventListeners();
+        }
+    }
+})(UserController, UiController, StorageController)
+
+AppController.initialize();
